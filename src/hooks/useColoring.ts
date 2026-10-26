@@ -38,7 +38,7 @@ export function useColoring(): UseColoringReturn {
   const setAlgorithm = useCallback((type: AlgorithmType) => {
     ctx.setStrategy(type);
     setSelectedAlgorithm(type);
-    addLog(`Алгоритм змінено: ${ColoringContext.getByType(type).name}`, 'info');
+    addLog(`Algorithm changed: ${ColoringContext.getByType(type).name}`, 'info');
   }, [addLog]);
 
   const cancelColoring = useCallback(() => {
@@ -62,13 +62,13 @@ export function useColoring(): UseColoringReturn {
 
     if (wasCanceled) {
       setIsRunning(false);
-      addLog('Обчислення алгоритму примусово скасовано', 'warn');
+      addLog('Computation cancelled', 'warn');
     }
   }, [addLog]);
 
   const runColoring = useCallback(async (graph: Graph): Promise<ColoringResult | null> => {
     if (graph.vertices.length === 0) {
-      addLog('Граф порожній. Додайте вершини.', 'warn');
+      addLog('The graph is empty. Add some vertices first.', 'warn');
       return null;
     }
 
@@ -76,7 +76,7 @@ export function useColoring(): UseColoringReturn {
 
     setIsRunning(true);
     const strategyName = ctx.getStrategy().name;
-    addLog(`Запуск алгоритму: ${strategyName} (${graph.vertices.length} вершин, ${graph.edges.length} ребер)`, 'info');
+    addLog(`Running ${strategyName} (${graph.vertices.length} vertices, ${graph.edges.length} edges)`, 'info');
 
     return new Promise<ColoringResult | null>(resolve => {
       resolveRef.current = resolve;
@@ -92,7 +92,7 @@ export function useColoring(): UseColoringReturn {
 
         timeoutRef.current = setTimeout(() => {
           worker.terminate();
-          addLog('Критичний таймаут Worker (>10с). Спробуйте жадібний алгоритм.', 'error');
+          addLog('Worker timed out (>10 s). Try the greedy algorithm.', 'error');
           setIsRunning(false);
 
           if (resolveRef.current) {
@@ -110,9 +110,9 @@ export function useColoring(): UseColoringReturn {
           };
 
           if (result.timeMs >= 9000) {
-            addLog(`Знайдено за таймаутом (${(result.timeMs / 1000).toFixed(1)} с). Результат може бути не оптимальним. Кольорів: ${result.chromaticNumber}`, 'warn');
+            addLog(`Found at the timeout (${(result.timeMs / 1000).toFixed(1)} s). The result may not be optimal. Colors: ${result.chromaticNumber}`, 'warn');
           } else {
-            addLog(`Завершено за ${result.timeMs.toFixed(2)} мс. Хроматичне число: ${result.chromaticNumber}`, 'success');
+            addLog(`Done in ${result.timeMs.toFixed(2)} ms. Chromatic number: ${result.chromaticNumber}`, 'success');
           }
 
           setIsRunning(false);
@@ -126,7 +126,7 @@ export function useColoring(): UseColoringReturn {
 
         worker.onerror = () => {
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          addLog('Помилка у Web Worker', 'error');
+          addLog('Web Worker error', 'error');
           setIsRunning(false);
 
           if (resolveRef.current) {
@@ -149,15 +149,15 @@ export function useColoring(): UseColoringReturn {
         try {
           const result = ctx.execute(graph);
           if (result.success) {
-            addLog(`Завершено за ${result.timeMs.toFixed(2)} мс. Хроматичне число: ${result.chromaticNumber}`, 'success');
+            addLog(`Done in ${result.timeMs.toFixed(2)} ms. Chromatic number: ${result.chromaticNumber}`, 'success');
           } else {
-            addLog('Розв\'язок не знайдено', 'error');
+            addLog('No solution found', 'error');
           }
           setIsRunning(false);
           resolveRef.current = null;
           resolve(result);
         } catch (err) {
-          addLog(`Помилка алгоритму: ${String(err)}`, 'error');
+          addLog(`Algorithm error: ${String(err)}`, 'error');
           setIsRunning(false);
           resolveRef.current = null;
           resolve(null);
@@ -169,9 +169,9 @@ export function useColoring(): UseColoringReturn {
   const validateColoring = useCallback((graph: Graph, result: ColoringResult) => {
     const { valid, conflicts } = GraphService.validate(graph, result.coloring);
     if (valid) {
-      addLog(`Розфарбовування коректне. Використано ${result.chromaticNumber} кольорів.`, 'success');
+      addLog(`Coloring is valid. ${result.chromaticNumber} colors used.`, 'success');
     } else {
-      addLog(`Знайдено ${conflicts.length} конфліктних ребер!`, 'error');
+      addLog(`Found ${conflicts.length} conflicting edge${conflicts.length === 1 ? '' : 's'}!`, 'error');
     }
   }, [addLog]);
 

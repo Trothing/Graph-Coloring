@@ -4,7 +4,7 @@ import { GreedyColoring } from './GreedyColoring';
 
 export class BacktrackingMRV implements IColoringStrategy {
   readonly name = 'Backtracking + MRV';
-  readonly description = 'Пошук з поверненням (MRV). Оптимізовано жадібною верхньою межею.';
+  readonly description = 'Backtracking search that always picks the most constrained vertex (MRV) next. Bounded by a greedy upper limit.';
 
   color(graph: Graph): ColoringResult {
     const start = performance.now();

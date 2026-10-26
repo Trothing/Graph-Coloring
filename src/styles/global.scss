@@ -1,0 +1,88 @@
+:root {
+  --paper-1: #f3eee3;
+  --paper-2: #fbf8f1;
+  --paper-3: #e9e2d3;
+
+  --ink-1: #16141a;
+  --ink-2: #55505c;
+  --ink-3: #8d8795;
+
+  --accent: #2f3bff;
+  --accent-soft: #dde0ff;
+
+  --success: #0e8f5a;
+  --error: #e5354b;
+  --warn: #d98a00;
+
+  --font-display: 'Bricolage Grotesque', 'Inter Tight', system-ui, sans-serif;
+  --font-ui: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --rad-panel: 0.7rem;
+  --rad-btn: 0.55rem;
+  --shadow-hard: 0.28rem 0.28rem 0 var(--ink-1);
+  --shadow-sm: 0.16rem 0.16rem 0 var(--ink-1);
+
+  --gap: clamp(0.75rem, 1.1vw, 1.5rem);
+  --panel-w: clamp(19rem, 24vw, 32rem);
+}
+
+// One root size drives the whole UI: ~13px on small laptops up to 22px on large monitors.
+html {
+  font-size: clamp(13px, calc(0.45vw + 8.5px), 22px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--ink-1);
+  background: var(--paper-3);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+// This is an app, not a document: interface text should not get a selection
+// highlight when it is clicked, double-clicked or dragged across. Only the log
+// (below) and real inputs stay selectable.
+html {
+  -webkit-tap-highlight-color: transparent; // no blue flash when tapping on touch screens
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation; // no double-tap zoom delay on buttons
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--ink-1);
+  color: var(--paper-2);
+}
+
+// Keyboard users still get a focus ring (ink, not browser-blue); mouse and touch clicks do not.
+:focus { outline: none; }
+
+:focus-visible {
+  outline: 2px dashed var(--ink-1);
+  outline-offset: 3px;
+}
+
+@media (max-width: 860px) {
+  body { overflow: auto; }
+}

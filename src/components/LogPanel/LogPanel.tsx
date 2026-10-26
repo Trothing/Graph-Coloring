@@ -11,29 +11,31 @@ const TYPE_ICONS: Record<LogEntry['type'], string> = {
   info: '›',
   success: '✓',
   error: '✕',
-  warn: '⚠',
+  warn: '!',
 };
 
-export const LogPanel: React.FC<LogPanelProps> = ({ logs, onClear }) => {
-  const bottomRef = useRef<HTMLDivElement>(null);
+const fmt = (ts: number) =>
+  new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+export const LogPanel: React.FC<LogPanelProps> = ({ logs, onClear }) => {
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // Scroll only the log itself; scrollIntoView could drag the whole page along.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = bodyRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [logs]);
 
-  const fmt = (ts: number) =>
-    new Date(ts).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
   return (
-    <div className={styles.panel}>
-      <div className={styles.header}>
-        <span className={styles.title}>Лог</span>
+    <section className={styles.panel} aria-label="Log">
+      <header className={styles.header}>
+        <span className={styles.title}>Log</span>
         <span className={styles.count}>{logs.length}</span>
-        <button className={styles.clearBtn} onClick={onClear}>Очистити</button>
-      </div>
-      <div className={styles.body}>
+        <button className={styles.clearBtn} onClick={onClear} disabled={logs.length === 0}>Clear</button>
+      </header>
+      <div className={styles.body} ref={bodyRef}>
         {logs.length === 0 && (
-          <span className={styles.empty}>Поки що нічого...</span>
+          <span className={styles.empty}>Nothing here yet…</span>
         )}
         {logs.map(entry => (
           <div key={entry.id} className={`${styles.entry} ${styles[entry.type]}`}>
@@ -42,8 +44,7 @@ export const LogPanel: React.FC<LogPanelProps> = ({ logs, onClear }) => {
             <span className={styles.message}>{entry.message}</span>
           </div>
         ))}
-        <div ref={bottomRef} />
       </div>
-    </div>
+    </section>
   );
 };

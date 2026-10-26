@@ -52,12 +52,64 @@ export class GraphService {
     return { vertices, edges, adjacency: GraphService.buildAdjacency(vertices, edges) };
   }
 
+  static rescale(graph: Graph, sx: number, sy: number): Graph {
+    const vertices = graph.vertices.map(v => ({ ...v, x: v.x * sx, y: v.y * sy }));
+    return { vertices, edges: graph.edges, adjacency: graph.adjacency };
+  }
+
+  /** Scales a graph so every vertex sits inside the canvas; graphs that already fit are untouched. */
+  static fitInto(graph: Graph, canvasW: number, canvasH: number, padding: number): Graph {
+    if (graph.vertices.length === 0) return graph;
+    const xs = graph.vertices.map(v => v.x);
+    const ys = graph.vertices.map(v => v.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const fits = minX >= padding && minY >= padding &&
+        maxX <= canvasW - padding && maxY <= canvasH - padding;
+    if (fits) return graph;
+
+    const innerW = Math.max(canvasW - padding * 2, 1);
+    const innerH = Math.max(canvasH - padding * 2, 1);
+    const spreadX = maxX - minX;
+    const spreadY = maxY - minY;
+    const vertices = graph.vertices.map(v => ({
+      ...v,
+      x: padding + (spreadX > 0 ? ((v.x - minX) / spreadX) * innerW : innerW / 2),
+      y: padding + (spreadY > 0 ? ((v.y - minY) / spreadY) * innerH : innerH / 2),
+    }));
+    return { vertices, edges: graph.edges, adjacency: graph.adjacency };
+  }
+
   static generateRandom(count: number, density: number, canvasW: number, canvasH: number): Graph {
-    const padding = 60;
-    const vertices: Vertex[] = Array.from({ length: count }, (_, i) => ({
+    const padding = Math.min(56, canvasW / 6, canvasH / 6);
+    const innerW = Math.max(canvasW - padding * 2, 1);
+    const innerH = Math.max(canvasH - padding * 2, 1);
+    // Keep vertices apart so none hides another; relax the gap when the canvas is crowded.
+    const minGap = Math.min(72, Math.sqrt((innerW * innerH) / count) * 0.75);
+
+    const placed: { x: number; y: number }[] = [];
+    for (let i = 0; i < count; i++) {
+      let best = { x: 0, y: 0 };
+      let bestDist = -1;
+      for (let attempt = 0; attempt < 40; attempt++) {
+        const p = {
+          x: padding + Math.random() * innerW,
+          y: padding + Math.random() * innerH,
+        };
+        const nearest = placed.reduce(
+            (min, q) => Math.min(min, Math.hypot(p.x - q.x, p.y - q.y)),
+            Infinity,
+        );
+        if (nearest > bestDist) { best = p; bestDist = nearest; }
+        if (nearest >= minGap) break;
+      }
+      placed.push(best);
+    }
+
+    const vertices: Vertex[] = placed.map((p, i) => ({
       id: `v${i}`,
-      x: padding + Math.random() * (canvasW - padding * 2),
-      y: padding + Math.random() * (canvasH - padding * 2),
+      x: p.x,
+      y: p.y,
       color: null,
       label: String(i + 1),
     }));

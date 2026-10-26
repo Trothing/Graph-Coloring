@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { Graph, ColoringResult } from '../domain/types';
 import { GraphService } from '../services/GraphService';
 
@@ -12,6 +12,7 @@ interface UseGraphReturn {
   removeVertex: (id: string) => void;
   removeEdge: (id: string) => void;
   generateRandom: (count: number, density: number) => void;
+  resizeCanvas: (width: number, height: number) => void;
   clearGraph: () => void;
   clearColoring: () => void;
   importJSON: (json: string) => ColoringResult | null;
@@ -19,12 +20,13 @@ interface UseGraphReturn {
   exportJSONWithResult: () => void;
 }
 
-const CANVAS_W = 1200;
-const CANVAS_H = 520;
+const FALLBACK_SIZE = { width: 1200, height: 520 };
+const FIT_PADDING = 48;
 
 export function useGraph(): UseGraphReturn {
   const [graph, setGraph] = useState<Graph>(GraphService.createEmpty());
   const [result, setResult] = useState<ColoringResult | null>(null);
+  const canvasSize = useRef<{ width: number; height: number } | null>(null);
 
   const addVertex = useCallback((x: number, y: number) => {
     setGraph(prev => GraphService.addVertex(prev, x, y));
@@ -46,8 +48,16 @@ export function useGraph(): UseGraphReturn {
   }, []);
 
   const generateRandom = useCallback((count: number, density: number) => {
-    setGraph(GraphService.generateRandom(count, density, CANVAS_W, CANVAS_H));
+    const { width, height } = canvasSize.current ?? FALLBACK_SIZE;
+    setGraph(GraphService.generateRandom(count, density, width, height));
     setResult(null);
+  }, []);
+
+  const resizeCanvas = useCallback((width: number, height: number) => {
+    const prev = canvasSize.current;
+    canvasSize.current = { width, height };
+    if (!prev || (prev.width === width && prev.height === height)) return;
+    setGraph(g => GraphService.rescale(g, width / prev.width, height / prev.height));
   }, []);
 
   const clearGraph = useCallback(() => {
@@ -61,12 +71,14 @@ export function useGraph(): UseGraphReturn {
 
   const importJSON = useCallback((json: string): ColoringResult | null => {
     try {
-      const { graph: g, result: r } = GraphService.fromJSON(json);
+      const { graph: parsed, result: r } = GraphService.fromJSON(json);
+      const size = canvasSize.current;
+      const g = size ? GraphService.fitInto(parsed, size.width, size.height, FIT_PADDING) : parsed;
       setGraph(g);
       setResult(r);
       return r;
     } catch {
-      throw new Error('Невалідний JSON формат графа');
+      throw new Error('Invalid graph JSON format');
     }
   }, []);
 
@@ -91,6 +103,7 @@ export function useGraph(): UseGraphReturn {
     addEdge,
     removeVertex,
     generateRandom,
+    resizeCanvas,
     clearGraph,
     clearColoring,
     importJSON,

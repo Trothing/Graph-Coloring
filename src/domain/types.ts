@@ -35,3 +35,5 @@ export interface LogEntry {
   type: 'info' | 'success' | 'error' | 'warn';
 }
 
+
+export type InteractionMode = 'add-vertex' | 'add-edge' | 'select';

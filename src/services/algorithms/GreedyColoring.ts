@@ -3,7 +3,7 @@ import type { IColoringStrategy } from '../../domain/IColoringStrategy';
 
 export class GreedyColoring implements IColoringStrategy {
   readonly name = 'Greedy';
-  readonly description = 'Класичний жадібний алгоритм. Швидкий, але не завжди оптимальний.';
+  readonly description = 'Classic greedy coloring. Fast, but not always optimal.';
 
   color(graph: Graph): ColoringResult {
     const start = performance.now();

@@ -1,45 +1,89 @@
+@use '../../styles/mixins' as *;
+
 .wrapper {
-  padding-top: 10px;
-  position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  background: var(--bg);
+  min-height: 0;
+  background: var(--paper-1);
+}
+
+.hintBar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  padding: 0.45rem 0.9rem;
+  border-bottom: 2px solid var(--ink-1);
+  background: var(--paper-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.hintDot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  border: 2px solid var(--ink-1);
+  background: var(--accent);
+  flex-shrink: 0;
+
+  &[data-mode='add-edge'] { background: #ffc21a; }
+  &[data-mode='select'] { background: #00a86b; }
+}
+
+// The measured area: the svg inside is positioned absolutely so it never
+// pushes the layout, only follows it.
+.surface {
+  position: relative;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
 .canvas {
+  position: absolute;
+  inset: 0;
   display: block;
-  width: 100%;
-  height: 100%;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation; // taps still scroll/zoom the page like normal
+  outline: none;
 }
 
 .edge {
-  stroke: #334155;
-  stroke-width: 1.5;
+  stroke: var(--ink-1);
+  stroke-opacity: 0.55;
   stroke-linecap: round;
-  transition: stroke var(--ease);
+  pointer-events: none;
+}
 
-  &:hover { stroke: #475569; cursor: pointer; }
+.edgeHit {
+  stroke: transparent;
+  stroke-linecap: round;
+  cursor: pointer;
 }
 
 .edgeConflict {
   stroke: var(--error);
-  stroke-width: 2;
-  animation: conflictBlink 1.6s ease-in-out infinite;
+  stroke-opacity: 1;
+  stroke-dasharray: 6 4;
+  animation: conflictPulse 1.2s ease-in-out infinite;
 }
 
-@keyframes conflictBlink {
+@keyframes conflictPulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.35; }
 }
 
 .pendingRing {
   fill: none;
   stroke: var(--accent);
-  stroke-width: 1.5;
+  stroke-width: 2;
   stroke-dasharray: 5 4;
-  opacity: 0.7;
   animation: dashSpin 2s linear infinite;
 }
 
@@ -47,32 +91,19 @@
   to { stroke-dashoffset: -36; }
 }
 
-.vertex {
-  transition: opacity var(--ease);
+.vertexBody {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vertexPop 0.28s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+
+@keyframes vertexPop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .vertexLabel {
   font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 400;
-  fill: rgba(255,255,255,0.8);
+  font-weight: 700;
   pointer-events: none;
-  letter-spacing: 0.02em;
-}
-
-.modeBadge {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 11px;
-  font-family: var(--font-ui);
-  color: var(--text-3);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 4px 12px;
-  white-space: nowrap;
-  pointer-events: none;
-  letter-spacing: 0.01em;
 }

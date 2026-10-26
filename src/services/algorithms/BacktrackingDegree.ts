@@ -4,7 +4,7 @@ import { GreedyColoring } from './GreedyColoring';
 
 export class BacktrackingDegree implements IColoringStrategy {
   readonly name = 'Backtracking + Degree';
-  readonly description = 'Знаходить мінімальне хроматичне число. Оптимізовано жадібною верхньою межею.';
+  readonly description = 'Finds the minimum chromatic number, branching on the highest-degree vertices first. Bounded by a greedy upper limit.';
 
   color(graph: Graph): ColoringResult {
     const start = performance.now();
